@@ -1,11 +1,33 @@
+// Vars
+variable "ami_id" {
+  description = "AMI ID for EC2 instance"
+  default     = "ami-0440d3b780d96b29d"
+}
+
+variable "instance_type" {
+  description = "EC2 Instance Type"
+  default     = "t2.micro"
+}
+
+variable "server_name" {
+  description = "Server name"
+  default     = "nginx-server"
+}
+
+variable "environment" {
+  description = "App environment"
+  default     = "test"
+}
+
+// Provider
 provider "aws" {
   region     = "us-east-1"
 }
 
 // Nginx EC2 instance
 resource "aws_instance" "nginx-server" {
-  ami           = "ami-0440d3b780d96b29d"
-  instance_type = "t2.micro"
+  ami           = var.ami_id
+  instance_type = var.instance_type
 
   user_data = <<-EOF
                 #!/bin/bash
@@ -19,8 +41,8 @@ resource "aws_instance" "nginx-server" {
     aws_security_group.nginx-server-sg.id
   ]
   tags = {
-    Name        = "nginx-server"
-    Environment = "test"
+    Name        = var.server_name
+    Environment = var.environment
     Owner       = "cristiancuello10@gmail.com"
     Team        = "DevOps"
     Project     = "Pruebas"
@@ -28,11 +50,11 @@ resource "aws_instance" "nginx-server" {
 }
 // Key pair
 resource "aws_key_pair" "nginx-server-ssh" {
-  key_name   = "nginx-server-ssh"
-  public_key = file("nginx-server.key.pub")
+  key_name   = "${var.server_name}-ssh"
+  public_key = file("${var.server_name}.key.pub")
   tags = {
-    Name        = "nginx-server-ssh"
-    Environment = "test"
+    Name        = "${var.server_name}-ssh"
+    Environment = var.environment
     Owner       = "cristiancuello10@gmail.com"
     Team        = "DevOps"
     Project     = "Pruebas"
@@ -45,8 +67,8 @@ resource "aws_security_group" "nginx-server-sg" {
   description = "Allows SSH and HTTP access"
 
   tags = {
-    Name        = "nginx-server-sg"
-    Environment = "test"
+    Name        = "${var.server_name}-sg"
+    Environment = var.environment
     Owner       = "cristiancuello10@gmail.com"
     Team        = "DevOps"
     Project     = "Pruebas"
@@ -73,9 +95,6 @@ resource "aws_security_group" "nginx-server-sg" {
     cidr_blocks = ["0.0.0.0/0"]
 
   }
-
-
-
 }
 
 // Output
